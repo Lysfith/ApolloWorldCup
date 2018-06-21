@@ -1,5 +1,6 @@
 ﻿using Slack.Webhooks;
 using System;
+using System.Linq;
 
 namespace ApolloWorldCup
 {
@@ -23,11 +24,19 @@ namespace ApolloWorldCup
         public static WorldCupApi _wcApi;
         public static bool _enableSlackApi = false;
 
+        public static string _channelId = "CAZAYAE1G";
+        public static string _tokenSlack = "xoxp-301409525076-303733381060-384153991315-e03a5853186123adcbe4fd9ff71ec387";
+
         static void Main(string[] args)
         {
             string webhook = null;
-            if(args != null)
+            if (args != null)
             {
+                if (args.Length > 0)
+                {
+                    webhook = args[0];
+                    _enableSlackApi = true;
+                }
                 if (args.Length > 0)
                 {
                     webhook = args[0];
@@ -40,10 +49,10 @@ namespace ApolloWorldCup
             Console.ForegroundColor = ConsoleColor.White;
 
             _wcApi = new WorldCupApi();
-            if (_enableSlackApi)
-            {
-                _slackApi = new SlackApi(webhook);
-            }
+
+            _slackApi = new SlackApi(webhook);
+            var messages = _slackApi.GetMessagesFromChannel(_tokenSlack, _channelId, 30, null).Result;
+            var lastMessage = _slackApi.GetMessagesFromChannel(_tokenSlack, _channelId, 30, t.ElementAt(1).TimeStamp).Result;
 
             PostStartBot();
 
