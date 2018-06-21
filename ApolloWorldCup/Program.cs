@@ -25,11 +25,11 @@ namespace ApolloWorldCup
         public static bool _enableSlackApi = false;
 
         public static string _channelId = "CAZAYAE1G";
-        public static string _tokenSlack = "xoxp-301409525076-303733381060-384153991315-e03a5853186123adcbe4fd9ff71ec387";
 
         static void Main(string[] args)
         {
             string webhook = null;
+            string token = null;
             if (args != null)
             {
                 if (args.Length > 0)
@@ -37,10 +37,9 @@ namespace ApolloWorldCup
                     webhook = args[0];
                     _enableSlackApi = true;
                 }
-                if (args.Length > 0)
+                if (args.Length > 1)
                 {
-                    webhook = args[0];
-                    _enableSlackApi = true;
+                    token = args[1];
                 }
             }
 
@@ -50,9 +49,12 @@ namespace ApolloWorldCup
 
             _wcApi = new WorldCupApi();
 
-            _slackApi = new SlackApi(webhook);
-            var messages = _slackApi.GetMessagesFromChannel(_tokenSlack, _channelId, 30, null).Result;
-            var lastMessage = _slackApi.GetMessagesFromChannel(_tokenSlack, _channelId, 30, t.ElementAt(1).TimeStamp).Result;
+            if (_enableSlackApi)
+            {
+                _slackApi = new SlackApi(webhook);
+                var messages = _slackApi.GetMessagesFromChannel(token, _channelId, 30, null).Result;
+                var lastMessage = _slackApi.GetMessagesFromChannel(token, _channelId, 30, messages.ElementAt(1).TimeStamp).Result;
+            }
 
             PostStartBot();
 
@@ -138,7 +140,7 @@ namespace ApolloWorldCup
         {
             var message = "";
 
-            switch(e.Type)
+            switch (e.Type)
             {
                 case "red-card":
                     message = string.Format(EVENT_YELLOW_CARD, e.Player, team.Country, e.Time);
