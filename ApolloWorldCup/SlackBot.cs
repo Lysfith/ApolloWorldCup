@@ -265,10 +265,10 @@ namespace ApolloWorldCup
             switch (e.Type)
             {
                 case "red-card":
-                    message = string.Format(EVENT_YELLOW_CARD, e.Player, team.Country, e.Time);
+                    message = string.Format(EVENT_RED_CARD, e.Player, team.Country, e.Time);
                     break;
                 case "yellow-card":
-                    message = string.Format(EVENT_RED_CARD, e.Player, team.Country, e.Time);
+                    message = string.Format(EVENT_YELLOW_CARD, e.Player, team.Country, e.Time);
                     break;
                 case "goal-penalty":
                     message = string.Format(EVENT_PENALTY, team.Country, e.Player, e.Time);
