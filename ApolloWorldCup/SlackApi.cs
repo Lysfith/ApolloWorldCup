@@ -2,6 +2,7 @@
 using Slack.Webhooks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -57,7 +58,7 @@ namespace ApolloWorldCup
 
             var result =  JsonConvert.DeserializeObject<SlackResultApi>(await response.Content.ReadAsStringAsync());
 
-            return result.Messages;
+            return result.Messages.Where(m => m.User != null).ToList();
         }
     }
 }
