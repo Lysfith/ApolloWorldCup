@@ -11,9 +11,16 @@ namespace ApolloWorldCup
 
         public SlackClient _client;
 
-        public SlackApi()
+        public SlackApi(string webhook = null)
         {
-            _client = new SlackClient(WEBHOOK_URL);
+            if (string.IsNullOrEmpty(webhook))
+            {
+                _client = new SlackClient(WEBHOOK_URL);
+            }
+            else
+            {
+                _client = new SlackClient(webhook);
+            }
         }
 
         public void SendMessage(string channel, string text, Emoji icon, string username)
