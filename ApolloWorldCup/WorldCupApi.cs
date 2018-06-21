@@ -13,6 +13,7 @@ namespace ApolloWorldCup
     {
         private string _urlTodayMatches = "http://worldcup.sfg.io/matches/today";
         private string _urlCurrentMatch = "http://worldcup.sfg.io/matches/current";
+        private int _timeBetweenCall = 10;
         private HttpClient _client;
         private Thread _thread;
         private Action<WorldCupMatch> _callbackStateMatch;
@@ -26,10 +27,11 @@ namespace ApolloWorldCup
             _previousMatches = new List<WorldCupMatch>();
         }
 
-        public void Start(Action<WorldCupMatch> callbackStateMatch, Action<WorldCupTeam, WorldCupTeamEvent> callbackEvent)
+        public void Start(Action<WorldCupMatch> callbackStateMatch, Action<WorldCupTeam, WorldCupTeamEvent> callbackEvent, int timeBetweenCall = 10)
         {
             _callbackStateMatch = callbackStateMatch;
             _callbackEvent = callbackEvent;
+            _timeBetweenCall = timeBetweenCall;
             _thread = new Thread(Run);
             _thread.Start();
         }
@@ -78,7 +80,7 @@ namespace ApolloWorldCup
         {
             while(true)
             {
-                var matches = GetTodayMatches().Result;
+                var matches = GetTodayMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
                 foreach(var match in matches)
                 {
@@ -124,7 +126,7 @@ namespace ApolloWorldCup
 
                 _previousMatches = matches;
 
-                Thread.Sleep(10000);
+                Thread.Sleep(_timeBetweenCall);
             }
         }
     }

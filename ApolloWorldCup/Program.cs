@@ -31,10 +31,7 @@ namespace ApolloWorldCup
                 if (args.Length > 0)
                 {
                     webhook = args[0];
-                }
-                else if (args.Length > 1)
-                {
-                    _enableSlackApi = bool.Parse(args[1]);
+                    _enableSlackApi = true;
                 }
             }
 
@@ -43,7 +40,10 @@ namespace ApolloWorldCup
             Console.ForegroundColor = ConsoleColor.White;
 
             _wcApi = new WorldCupApi();
-            _slackApi = new SlackApi(webhook);
+            if (_enableSlackApi)
+            {
+                _slackApi = new SlackApi(webhook);
+            }
 
             PostStartBot();
 
