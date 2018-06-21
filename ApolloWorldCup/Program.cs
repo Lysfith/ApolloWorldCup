@@ -5,7 +5,23 @@ namespace ApolloWorldCup
 {
     class Program
     {
-        public static SlackClient _slackClient;
+        public static string BOT_RUNNING = "Démarrage du bot";
+        public static string BOT_STOPPING = "Arrêt du bot";
+
+        public static string MATCH_FUTURE = "{0} *{1}* | *{2}* {3} (Commence à {4})";
+        public static string MATCH_PAUSE = "{0} *{1}* | *{2}* {3} (Mi-temps)";
+        public static string MATCH_START = "{0} *{1}* | *{2}* {3} (En cours - {4})";
+        public static string MATCH_END_DRAW = "Le match *{0}* - *{1}* s'est terminé par une égalité ({2} - {3})";
+        public static string MATCH_END_VICTORY = "Victoire de *{0}* face à *{1}* ({2} - {3})";
+
+        public static string EVENT_YELLOW_CARD = "*Carton jaune* pour *{0}* de *{1}* à la *{2}*";
+        public static string EVENT_RED_CARD = "*Carton rouge* pour *{0}* de *{1}* à la *{2}*";
+        public static string EVENT_PENALTY = "*Penalty* en faveur de *{0}* tiré par *{1}* à la *{2}*";
+        public static string EVENT_GOAL = "*{0}* a marqué pour *{1}* à la *{2}*";
+
+        public static SlackApi _slackApi;
+        public static WorldCupApi _wcApi;
+        public static bool _enableSlackApi = false;
 
         static void Main(string[] args)
         {
@@ -13,49 +29,41 @@ namespace ApolloWorldCup
             Console.WriteLine("Start");
             Console.ForegroundColor = ConsoleColor.White;
 
-            var wcApi = new WorldCupApi();
-
-            _slackClient = new SlackClient("#WEBHOOK_URL#");
+            _wcApi = new WorldCupApi();
+            _slackApi = new SlackApi();
 
             PostStartBot();
 
-            wcApi.Start(PostMatchStateChange, PostOnEvent);
+            _wcApi.Start(PostMatchStateChange, PostOnEvent);
 
             Console.ReadKey();
 
-            wcApi.Stop();
+            _wcApi.Stop();
 
             PostStopBot();
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("End");
         }
 
         public static void PostStartBot()
         {
-            var slackMessage = new SlackMessage
+            Console.WriteLine(BOT_RUNNING);
+
+            if (_enableSlackApi)
             {
-                Channel = "#sport",
-                Text = $"Démarrage du bot",
-                IconEmoji = Emoji.Ghost,
-                Username = "Apollo WorldCup"
-            };
-
-            Console.WriteLine($"Démarrage du bot");
-
-            _slackClient.Post(slackMessage);
+                _slackApi.SendMessage("#sport", BOT_RUNNING, Emoji.Ghost, "Apollo WorldCup");
+            }
         }
 
         public static void PostStopBot()
         {
-            var slackMessage = new SlackMessage
+            Console.WriteLine(BOT_STOPPING);
+
+            if (_enableSlackApi)
             {
-                Channel = "#sport",
-                Text = $"Arrêt du bot",
-                IconEmoji = Emoji.Ghost,
-                Username = "Apollo WorldCup"
-            };
-
-            Console.WriteLine($"Arrêt du bot");
-
-            _slackClient.Post(slackMessage);
+                _slackApi.SendMessage("#sport", BOT_STOPPING, Emoji.Ghost, "Apollo WorldCup");
+            }
         }
 
         public static void PostMatchStateChange(WorldCupMatch matchState)
@@ -66,22 +74,22 @@ namespace ApolloWorldCup
             switch (matchState.Status)
             {
                 case "future":
-                    message = $"{matchState.HomeTeam.Country} *{matchState.HomeTeam.Goals}* | *{matchState.AwayTeam.Goals}* {matchState.AwayTeam.Country} (Commence à {date.ToLocalTime().ToShortTimeString()})";
+                    message = string.Format(MATCH_FUTURE, matchState.HomeTeam.Country, matchState.HomeTeam.Goals, matchState.AwayTeam.Goals, matchState.AwayTeam.Country, date.ToLocalTime().ToShortTimeString());
                     break;
                 case "in progress":
                     if (matchState.Time == "half-time")
                     {
-                        message = $"{matchState.HomeTeam.Country} *{matchState.HomeTeam.Goals}* | *{matchState.AwayTeam.Goals}* {matchState.AwayTeam.Country} (Mi-temps)";
+                        message = string.Format(MATCH_PAUSE, matchState.HomeTeam.Country, matchState.HomeTeam.Goals, matchState.AwayTeam.Goals, matchState.AwayTeam.Country);
                     }
                     else
                     {
-                        message = $"{matchState.HomeTeam.Country} *{matchState.HomeTeam.Goals}* | *{matchState.AwayTeam.Goals}* {matchState.AwayTeam.Country} (En cours - {matchState.Time})";
+                        message = string.Format(MATCH_START, matchState.HomeTeam.Country, matchState.HomeTeam.Goals, matchState.AwayTeam.Goals, matchState.AwayTeam.Country, matchState.Time);
                     }
                     break;
                 case "completed":
                     if (matchState.Winner == "Draw")
                     {
-                        message = $"Le match *{matchState.HomeTeam.Country}* - *{matchState.AwayTeam.Country}* s'est terminé par une égalité ({matchState.AwayTeam.Goals} - {matchState.AwayTeam.Goals})";
+                        message = string.Format(MATCH_END_DRAW, matchState.HomeTeam.Country, matchState.AwayTeam.Country, matchState.AwayTeam.Goals, matchState.AwayTeam.Goals);
                     }
                     else
                     {
@@ -89,24 +97,19 @@ namespace ApolloWorldCup
                         var scoreWinner = matchState.Winner == matchState.HomeTeam.Country ? matchState.HomeTeam.Goals : matchState.AwayTeam.Goals;
                         var scoreLooser = matchState.Winner == matchState.HomeTeam.Country ? matchState.AwayTeam.Goals : matchState.HomeTeam.Goals;
 
-                        message = $"Victoire de *{matchState.Winner}* face à *{looser}* ({scoreWinner} - {scoreLooser})";
+                        message = string.Format(MATCH_END_VICTORY, matchState.Winner, looser, scoreWinner, scoreLooser);
                     }
                     break;
                 default:
                     return;
             }
 
-            var slackMessage = new SlackMessage
-            {
-                Channel = "#sport",
-                Text = message,
-                IconEmoji = Emoji.Ghost,
-                Username = "ApolloWorldCup"
-            };
-
             Console.WriteLine(message);
 
-            _slackClient.Post(slackMessage);
+            if (_enableSlackApi)
+            {
+                _slackApi.SendMessage("#sport", message, Emoji.Ghost, "Apollo WorldCup");
+            }
         }
 
         public static void PostOnEvent(WorldCupTeam team, WorldCupTeamEvent e)
@@ -116,16 +119,16 @@ namespace ApolloWorldCup
             switch(e.Type)
             {
                 case "red-card":
-                    message = $"*Carton rouge* pour *{e.Player}* de *{team.Country}* à la *{e.Time}*";
+                    message = string.Format(EVENT_YELLOW_CARD, e.Player, team.Country, e.Time);
                     break;
                 case "yellow-card":
-                    message = $"*Carton jaune* pour *{e.Player}* de *{team.Country}* à la *{e.Time}*";
+                    message = string.Format(EVENT_RED_CARD, e.Player, team.Country, e.Time);
                     break;
                 case "goal-penalty":
-                    message = $"*Penalty* en faveur de *{team.Country}* tiré par *{e.Player}* à la *{e.Time}*";
+                    message = string.Format(EVENT_PENALTY, team.Country, e.Player, e.Time);
                     break;
                 case "goal":
-                    message = $"*{e.Player}* a marqué pour *{team.Country}* à la *{e.Time}*";
+                    message = string.Format(EVENT_GOAL, e.Player, team.Country, e.Time);
                     break;
                 default:
                     return;
@@ -141,7 +144,10 @@ namespace ApolloWorldCup
 
             Console.WriteLine(message);
 
-            _slackClient.Post(slackMessage);
+            if (_enableSlackApi)
+            {
+                _slackApi.SendMessage("#sport", message, Emoji.Ghost, "Apollo WorldCup");
+            }
         }
     }
 }
