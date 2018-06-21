@@ -7,7 +7,7 @@ namespace ApolloWorldCup
 {
     public class SlackApi
     {
-        public const string WEBHOOK_URL = "https://hooks.slack.com/services/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";
+        public const string WEBHOOK_URL = "#WEBHOOK_URL#";
 
         public SlackClient _client;
 
