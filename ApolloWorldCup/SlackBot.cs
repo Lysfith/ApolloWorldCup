@@ -1,6 +1,7 @@
 ﻿using Slack.Webhooks;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -12,16 +13,16 @@ namespace ApolloWorldCup
         public static string BOT_RUNNING = "Démarrage du bot";
         public static string BOT_STOPPING = "Arrêt du bot";
 
-        public static string MATCH_FUTURE = "{0} *{1}* | *{2}* {3} (Commence à {4})";
-        public static string MATCH_PAUSE = "{0} *{1}* | *{2}* {3} (Mi-temps)";
-        public static string MATCH_START = "{0} *{1}* | *{2}* {3} (En cours - {4})";
-        public static string MATCH_END_DRAW = "Le match *{0}* - *{1}* s'est terminé par une égalité ({2} - {3})";
-        public static string MATCH_END_VICTORY = "Victoire de *{0}* face à *{1}* ({2} - {3})";
+        public static string MATCH_FUTURE = "{0} :flag-{1}: *{2}* | *{3}* :flag-{4}: {5} (Commence à {6})";
+        public static string MATCH_PAUSE = "{0} :flag-{1}: *{2}* | *{3}* :flag-{4}: {5} (Mi-temps)";
+        public static string MATCH_START = "{0} :flag-{1}: *{2}* | *{3}* :flag-{4}: {5} (En cours - {6})";
+        public static string MATCH_END_DRAW = "Le match *{0}* :flag-{2}: - :flag-{3}: *{4}* s'est terminé par une égalité ({5} - {6})";
+        public static string MATCH_END_VICTORY = "Victoire de *{0}* :flag-{1}: face à *{2}* :flag-{3}: ({4} - {5})";
 
-        public static string EVENT_YELLOW_CARD = "*Carton jaune* pour *{0}* de *{1}* à la *{2}*";
-        public static string EVENT_RED_CARD = "*Carton rouge* pour *{0}* de *{1}* à la *{2}*";
-        public static string EVENT_PENALTY = "*Penalty* en faveur de *{0}* tiré par *{1}* à la *{2}*";
-        public static string EVENT_GOAL = "*{0}* a marqué pour *{1}* à la *{2}*";
+        public static string EVENT_YELLOW_CARD = "*Carton jaune* pour *{0}* de *{1}* :flag-{2}: à la *{3}*";
+        public static string EVENT_RED_CARD = "*Carton rouge* pour *{0}* de *{1}* :flag-{2}: à la *{3}*";
+        public static string EVENT_PENALTY = "*Penalty* en faveur de *{0}* :flag-{1}: tiré par *{2}* à la *{3}*";
+        public static string EVENT_GOAL = "*{0}* a marqué pour *{1}* :flag-{2}: à la *{3}*";
 
 
         private Dictionary<string, Action> _commands;
@@ -223,22 +224,56 @@ namespace ApolloWorldCup
             switch (matchState.Status)
             {
                 case "future":
-                    message = string.Format(MATCH_FUTURE, matchState.HomeTeam.Country, matchState.HomeTeam.Goals, matchState.AwayTeam.Goals, matchState.AwayTeam.Country, date.ToLocalTime().ToShortTimeString());
+                    message = string.Format(
+                        MATCH_FUTURE,
+                        matchState.HomeTeam.Country,
+                        GetCountryCode(matchState.HomeTeam.Country),
+                        matchState.HomeTeam.Goals, 
+                        matchState.AwayTeam.Goals,
+                        GetCountryCode(matchState.AwayTeam.Country),
+                        matchState.AwayTeam.Country, 
+                        date.ToLocalTime().ToShortTimeString()
+                        );
                     break;
                 case "in progress":
                     if (matchState.Time == "half-time")
                     {
-                        message = string.Format(MATCH_PAUSE, matchState.HomeTeam.Country, matchState.HomeTeam.Goals, matchState.AwayTeam.Goals, matchState.AwayTeam.Country);
+                        message = string.Format(
+                            MATCH_PAUSE, 
+                            matchState.HomeTeam.Country,
+                            GetCountryCode(matchState.HomeTeam.Country),
+                            matchState.HomeTeam.Goals,
+                            matchState.AwayTeam.Goals, 
+                            GetCountryCode(matchState.AwayTeam.Country),
+                            matchState.AwayTeam.Country
+                            );
                     }
                     else
                     {
-                        message = string.Format(MATCH_START, matchState.HomeTeam.Country, matchState.HomeTeam.Goals, matchState.AwayTeam.Goals, matchState.AwayTeam.Country, matchState.Time);
+                        message = string.Format(
+                            MATCH_START, 
+                            matchState.HomeTeam.Country,
+                            GetCountryCode(matchState.HomeTeam.Country),
+                            matchState.HomeTeam.Goals, 
+                            matchState.AwayTeam.Goals, 
+                            matchState.AwayTeam.Country,
+                            GetCountryCode(matchState.AwayTeam.Country),
+                            matchState.Time
+                            );
                     }
                     break;
                 case "completed":
                     if (matchState.Winner == "Draw")
                     {
-                        message = string.Format(MATCH_END_DRAW, matchState.HomeTeam.Country, matchState.AwayTeam.Country, matchState.AwayTeam.Goals, matchState.AwayTeam.Goals);
+                        message = string.Format(
+                            MATCH_END_DRAW, 
+                            matchState.HomeTeam.Country,
+                            GetCountryCode(matchState.HomeTeam.Country),
+                            GetCountryCode(matchState.AwayTeam.Country),
+                            matchState.AwayTeam.Country, 
+                            matchState.AwayTeam.Goals,
+                            matchState.AwayTeam.Goals
+                            );
                     }
                     else
                     {
@@ -246,7 +281,15 @@ namespace ApolloWorldCup
                         var scoreWinner = matchState.Winner == matchState.HomeTeam.Country ? matchState.HomeTeam.Goals : matchState.AwayTeam.Goals;
                         var scoreLooser = matchState.Winner == matchState.HomeTeam.Country ? matchState.AwayTeam.Goals : matchState.HomeTeam.Goals;
 
-                        message = string.Format(MATCH_END_VICTORY, matchState.Winner, looser, scoreWinner, scoreLooser);
+                        message = string.Format(
+                            MATCH_END_VICTORY, 
+                            matchState.Winner,
+                            GetCountryCode(matchState.Winner),
+                            looser,
+                            GetCountryCode(looser),
+                            scoreWinner, 
+                            scoreLooser
+                            );
                     }
                     break;
                 default:
@@ -265,16 +308,16 @@ namespace ApolloWorldCup
             switch (e.Type)
             {
                 case "red-card":
-                    message = string.Format(EVENT_RED_CARD, e.Player, team.Country, e.Time);
+                    message = string.Format(EVENT_RED_CARD, e.Player, team.Country, GetCountryCode(team.Country), e.Time);
                     break;
                 case "yellow-card":
-                    message = string.Format(EVENT_YELLOW_CARD, e.Player, team.Country, e.Time);
+                    message = string.Format(EVENT_YELLOW_CARD, e.Player, team.Country, GetCountryCode(team.Country), e.Time);
                     break;
                 case "goal-penalty":
-                    message = string.Format(EVENT_PENALTY, team.Country, e.Player, e.Time);
+                    message = string.Format(EVENT_PENALTY, team.Country, GetCountryCode(team.Country), e.Player, e.Time);
                     break;
                 case "goal":
-                    message = string.Format(EVENT_GOAL, e.Player, team.Country, e.Time);
+                    message = string.Format(EVENT_GOAL, e.Player, team.Country, GetCountryCode(team.Country), e.Time);
                     break;
                 default:
                     return;
@@ -291,6 +334,14 @@ namespace ApolloWorldCup
             Console.WriteLine(message);
 
             _api.SendMessage("#sport", message, Emoji.Ghost, "Apollo WorldCup");
+        }
+
+        private string GetCountryCode(string s) {
+            CultureInfo[] cultures = CultureInfo.GetCultures(CultureTypes.SpecificCultures);
+            var cinfo = cultures.FirstOrDefault(culture => (new RegionInfo(culture.LCID).EnglishName) == s);
+            var rinfo = new RegionInfo(cinfo.LCID);
+
+            return rinfo.TwoLetterISORegionName;
         }
     }
 }
