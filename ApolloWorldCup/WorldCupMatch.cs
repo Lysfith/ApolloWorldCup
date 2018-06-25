@@ -39,6 +39,7 @@ namespace ApolloWorldCup
     public class WorldCupTeam
     {
         public string Country { get; set; }
+        public string Code { get; set; }
         public int Goals { get; set; }
     }
 
