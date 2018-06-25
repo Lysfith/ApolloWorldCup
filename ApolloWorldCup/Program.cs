@@ -11,7 +11,7 @@ namespace ApolloWorldCup
         public static WorldCupApi _wcApi;
         public static bool _enableSlackApi = false;
 
-        public static string _channelId = "CAZAYAE1G";
+        public static string _channelId = "CBEHQHHTR";
 
         static void Main(string[] args)
         {
