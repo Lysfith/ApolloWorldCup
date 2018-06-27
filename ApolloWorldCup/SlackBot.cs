@@ -13,16 +13,16 @@ namespace ApolloWorldCup
         public static string BOT_RUNNING = "Démarrage du bot";
         public static string BOT_STOPPING = "Arrêt du bot";
 
-        public static string MATCH_FUTURE = "{0} :flag-{1}: *{2}* | *{3}* :flag-{4}: {5} (Commence à {6})";
+        public static string MATCH_FUTURE = "{0} :flag-{1}: - :flag-{2}: {3} :watch:{4}";
         public static string MATCH_PAUSE = "{0} :flag-{1}: *{2}* | *{3}* :flag-{4}: {5} (Mi-temps)";
         public static string MATCH_START = "{0} :flag-{1}: *{2}* | *{3}* :flag-{4}: {5} (En cours - {6})";
         public static string MATCH_END_DRAW = "Le match *{0}* :flag-{2}: - :flag-{3}: *{4}* s'est terminé par une égalité ({5} - {6})";
         public static string MATCH_END_VICTORY = "Victoire de *{0}* :flag-{1}: face à *{2}* :flag-{3}: ({4} - {5})";
 
-        public static string EVENT_YELLOW_CARD = "*Carton jaune* pour *{0}* de *{1}* :flag-{2}: à la *{3}*";
-        public static string EVENT_RED_CARD = "*Carton rouge* pour *{0}* de *{1}* :flag-{2}: à la *{3}*";
+        public static string EVENT_YELLOW_CARD = ":carton_jaune: *Carton jaune* pour *{0}* de *{1}* :flag-{2}: à la *{3}*";
+        public static string EVENT_RED_CARD = ":carton_rouge: *Carton rouge* pour *{0}* de *{1}* :flag-{2}: à la *{3}*";
         public static string EVENT_PENALTY = "*Penalty* en faveur de *{0}* :flag-{1}: tiré par *{2}* à la *{3}*";
-        public static string EVENT_GOAL = "*{0}* a marqué pour *{1}* :flag-{2}: à la *{3}*";
+        public static string EVENT_GOAL = ":but: *{0}* a marqué pour *{1}* :flag-{2}: à la *{3}*";
 
 
         private Dictionary<string, Action> _commands;
@@ -228,8 +228,6 @@ namespace ApolloWorldCup
                         MATCH_FUTURE,
                         matchState.HomeTeam.Country,
                         GetCountryCode(matchState.HomeTeam.Country),
-                        matchState.HomeTeam.Goals, 
-                        matchState.AwayTeam.Goals,
                         GetCountryCode(matchState.AwayTeam.Country),
                         matchState.AwayTeam.Country, 
                         date.ToLocalTime().ToShortTimeString()
@@ -256,8 +254,8 @@ namespace ApolloWorldCup
                             GetCountryCode(matchState.HomeTeam.Country),
                             matchState.HomeTeam.Goals, 
                             matchState.AwayTeam.Goals, 
-                            matchState.AwayTeam.Country,
                             GetCountryCode(matchState.AwayTeam.Country),
+                            matchState.AwayTeam.Country,
                             matchState.Time
                             );
                     }
@@ -337,11 +335,17 @@ namespace ApolloWorldCup
         }
 
         private string GetCountryCode(string s) {
-            CultureInfo[] cultures = CultureInfo.GetCultures(CultureTypes.SpecificCultures);
-            var cinfo = cultures.FirstOrDefault(culture => (new RegionInfo(culture.LCID).EnglishName) == s);
-            var rinfo = new RegionInfo(cinfo.LCID);
+            try
+            {
+                CultureInfo[] cultures = CultureInfo.GetCultures(CultureTypes.SpecificCultures);
+                var cinfo = cultures.FirstOrDefault(culture => s.Contains((new RegionInfo(culture.LCID).EnglishName)));
+                var rinfo = new RegionInfo(cinfo.LCID);
 
-            return rinfo.TwoLetterISORegionName;
+                return rinfo.TwoLetterISORegionName;
+            }
+            catch(Exception e) {
+                return "";
+            }
         }
     }
 }
