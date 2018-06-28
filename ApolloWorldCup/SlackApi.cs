@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using log4net;
+using Newtonsoft.Json;
 using Slack.Webhooks;
 using System;
 using System.Collections.Generic;
@@ -30,17 +31,23 @@ namespace ApolloWorldCup
             _clientHttp = new HttpClient();
         }
 
-        public void SendMessage(string channel, string text, Emoji icon, string username)
+        public void SendMessage(string channel, string text, Emoji icon, string username, ILog logger)
         {
-            var slackMessage = new SlackMessage
-            {
-                Channel = channel,
-                Text = text,
-                IconEmoji = icon,
-                Username = username
-            };
+            try { 
+                var slackMessage = new SlackMessage
+                {
+                    Channel = channel,
+                    Text = text,
+                    IconEmoji = icon,
+                    Username = username
+                };
 
-            _client.Post(slackMessage);
+                _client.Post(slackMessage);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+            }
         }
 
         public async Task<IEnumerable<SlackMessageApi>> GetMessagesFromChannel(string token, string channelId, int count, string oldest = null)
