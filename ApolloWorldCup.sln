@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27703.2026
+VisualStudioVersion = 15.0.27130.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloWorldCup", "ApolloWorldCup\ApolloWorldCup.csproj", "{5F2E8C99-8BF5-42C6-B4C8-60382CAEEF39}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloWorldCup", "ApolloWorldCup\ApolloWorldCup.csproj", "{428B9E12-4861-45FF-BFA4-F2AA3F112548}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5F2E8C99-8BF5-42C6-B4C8-60382CAEEF39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F2E8C99-8BF5-42C6-B4C8-60382CAEEF39}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5F2E8C99-8BF5-42C6-B4C8-60382CAEEF39}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5F2E8C99-8BF5-42C6-B4C8-60382CAEEF39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{428B9E12-4861-45FF-BFA4-F2AA3F112548}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{428B9E12-4861-45FF-BFA4-F2AA3F112548}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{428B9E12-4861-45FF-BFA4-F2AA3F112548}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{428B9E12-4861-45FF-BFA4-F2AA3F112548}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
