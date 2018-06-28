@@ -1,4 +1,6 @@
-﻿using Slack.Webhooks;
+﻿using log4net;
+using log4net.Core;
+using Slack.Webhooks;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -38,15 +40,25 @@ namespace ApolloWorldCup
         private DateTime _start;
 
         private List<WorldCupMatch> _previousMatches;
+        private bool _sendMessagesToSlack = true;
+        private string _channel = "#sport";
+        private CultureInfo[] _cultures;
+        private Action _onClose;
 
-        public SlackBot(SlackApi api, WorldCupApi wcApi, string channelId, string token)
+        private ILog _logger;
+
+        public SlackBot(SlackApi api, WorldCupApi wcApi, string channelId, string token, ILog logger, Action onClose)
         {
+            _logger = logger;
             _api = api;
             _wcApi = wcApi;
             _channelId = channelId;
             _token = token;
             _start = DateTime.Now;
             _previousMatches = new List<WorldCupMatch>();
+            _onClose = onClose;
+
+            _cultures = CultureInfo.GetCultures(CultureTypes.SpecificCultures);
 
             _commands = new Dictionary<string, Action>()
             {
@@ -55,6 +67,11 @@ namespace ApolloWorldCup
                 { "!alexis", () => { _api.SendMessage(channelId, "Monnnnnneeeetttt", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup"); } },
                 { "!yaya", () => { _api.SendMessage(channelId, "Zoom zoom", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup"); } },
                 { "!uptime", () => { _api.SendMessage(channelId, $"Bot démarré depuis le {_start.ToString("dd/MM/yy HH:mm:ss")}", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup"); } },
+                { "!stop", () => {
+                        _api.SendMessage(channelId, $"Demande d'arrêt du bot...", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup");
+                        _onClose?.Invoke();
+                    }
+                },
                 { "!today", () => {
                         var matches = _wcApi.GetTodayMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
@@ -204,16 +221,22 @@ namespace ApolloWorldCup
 
         public void PostStartBot()
         {
-            Console.WriteLine(BOT_RUNNING);
+            _logger.Info(BOT_RUNNING);
 
-            _api.SendMessage("#sport", BOT_RUNNING, Emoji.Ghost, "Apollo WorldCup");
+            if (_sendMessagesToSlack)
+            {
+                _api.SendMessage(_channel, BOT_RUNNING, Emoji.Ghost, "Apollo WorldCup");
+            }
         }
 
         public void PostStopBot()
         {
-            Console.WriteLine(BOT_STOPPING);
+            _logger.Info(BOT_STOPPING);
 
-            _api.SendMessage("#sport", BOT_STOPPING, Emoji.Ghost, "Apollo WorldCup");
+            if (_sendMessagesToSlack)
+            {
+                _api.SendMessage(_channel, BOT_STOPPING, Emoji.Ghost, "Apollo WorldCup");
+            }
         }
 
         public void PostMatchStateChange(WorldCupMatch matchState)
@@ -294,9 +317,12 @@ namespace ApolloWorldCup
                     return;
             }
 
-            Console.WriteLine(message);
+            _logger.Info(message);
 
-            _api.SendMessage("#sport", message, Emoji.Ghost, "Apollo WorldCup");
+            if (_sendMessagesToSlack)
+            {
+                _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup");
+            }
         }
 
         public void PostOnEvent(WorldCupTeam team, WorldCupTeamEvent e)
@@ -323,27 +349,42 @@ namespace ApolloWorldCup
 
             var slackMessage = new SlackMessage
             {
-                Channel = "#sport",
+                Channel = _channel,
                 Text = message,
                 IconEmoji = Emoji.Ghost,
                 Username = "ApolloWorldCup"
             };
 
-            Console.WriteLine(message);
+            _logger.Info(message);
 
-            _api.SendMessage("#sport", message, Emoji.Ghost, "Apollo WorldCup");
+            if (_sendMessagesToSlack)
+            {
+                _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup");
+            }
         }
 
         private string GetCountryCode(string s) {
             try
             {
-                CultureInfo[] cultures = CultureInfo.GetCultures(CultureTypes.SpecificCultures);
-                var cinfo = cultures.FirstOrDefault(culture => s.Contains((new RegionInfo(culture.LCID).EnglishName)));
+                switch(s)
+                {
+                    case "England":
+                        return "England";
+                }
+
+                var cinfo = _cultures.FirstOrDefault(culture => s.Contains((new RegionInfo(culture.LCID).EnglishName)));
+
+                if(cinfo == null)
+                {
+                    return $"pas trouvé ({s})";
+                }
+                
                 var rinfo = new RegionInfo(cinfo.LCID);
 
                 return rinfo.TwoLetterISORegionName;
             }
             catch(Exception e) {
+                _logger.Error(e);
                 return "";
             }
         }

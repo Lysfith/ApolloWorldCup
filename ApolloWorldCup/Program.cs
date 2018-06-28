@@ -1,23 +1,33 @@
 ﻿using Slack.Webhooks;
 using System;
 using System.Linq;
+using log4net.Config;
+using log4net;
+using System.Reflection;
+using System.IO;
+using System.Threading;
 
 namespace ApolloWorldCup
 {
     class Program
     {
-        private static readonly log4net.ILog log
-       = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static SlackApi _slackApi;
         public static SlackBot _slackBot;
         public static WorldCupApi _wcApi;
         public static bool _enableSlackApi = false;
+        public static bool _running = true;
 
         public static string _channelId = "CAZAYAE1G";
 
         static void Main(string[] args)
         {
+            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+            XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+
+            Console.ForegroundColor = ConsoleColor.White;
+
             try
             {
                 string webhook = null;
@@ -40,26 +50,27 @@ namespace ApolloWorldCup
                     }
                 }
 
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine("Start");
-                Console.ForegroundColor = ConsoleColor.White;
+                _log.Info("Start");
+
 
                 _wcApi = new WorldCupApi();
                 _slackApi = new SlackApi(webhook);
 
-                _slackBot = new SlackBot(_slackApi, _wcApi, channelId, token);
+                _slackBot = new SlackBot(_slackApi, _wcApi, channelId, token, _log, () => _running = false);
                 _slackBot.Start();
 
-                Console.ReadKey();
+                while (_running)
+                {
+                    Thread.Sleep(1000);
+                }
 
                 _slackBot.Stop();
-
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine("End");
+                
+                _log.Info("End");
 
             }
             catch (Exception e) {
-                log.Error(e);
+                _log.Error(e);
             }
         }
 
