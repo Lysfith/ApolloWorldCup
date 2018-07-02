@@ -30,7 +30,7 @@ namespace ApolloWorldCup
         public static string EVENT_PENALTY = "*Penalty* en faveur de *{0}* :flag-{1}: tiré par *{2}* à la *{3}*";
         public static string EVENT_GOAL = ":but: *{0}* a marqué pour *{1}* :flag-{2}: à la *{3}*";
 
-        public static string TEAM_STATS = "*{0}* :flag-{1}: : W *{2}* | D *{3}* | L *{4}* | Buts totaux *{5}* | Buts pris *{6}*";
+        public static string TEAM_STATS = ":flag-{1}: *{0}* : W *{2}* | D *{3}* | L *{4}* | Buts totaux *{5}* | Buts pris *{6}*";
 
 
         private Dictionary<string, Action> _commands;
@@ -90,38 +90,26 @@ namespace ApolloWorldCup
                 { Constants.CMD_TODAY, () => {
                         var matches = _wcApi.GetTodayMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
-                        foreach (var match in matches)
-                        {
-                            PostMatchStateChange(match);
-                        }
+                        PostMatchStateChange(matches);
                     }
                 },
                 { Constants.CMD_TOMORROW, () => {
                         var matches = _wcApi.GetTomorrowMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
-                        foreach (var match in matches)
-                        {
-                            PostMatchStateChange(match);
-                        }
+                        PostMatchStateChange(matches);
                     }
                 },
                 { Constants.CMD_FUTURES, () => {
                         var matches = _wcApi.GetFuturesMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
-                        foreach (var match in matches)
-                        {
-                            PostMatchStateChange(match);
-                        }
+                        PostMatchStateChange(matches);
                     }
                 },
                  { Constants.CMD_TEAMS, () => {
-                    var teams = _wcApi.GetRemainingTeams().Result;
+                        var teams = _wcApi.GetRemainingTeams().Result;
 
-                    foreach (var team in teams)
-                    {
-                        PostOnTeamStat(team);
+                        PostOnTeamStat(teams);
                     }
-                }
                 },
                  { Constants.CMD_LIST, () => {
                         _api.SendMessage(channelId, string.Join(", ", _commands.Keys), Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger);
@@ -231,7 +219,7 @@ namespace ApolloWorldCup
                         var previousMatch = _previousMatches.Where(m => m.Id == match.Id).FirstOrDefault();
                         if (previousMatch == null)
                         {
-                            PostMatchStateChange(match);
+                            PostMatchStateChange(new List<WorldCupMatch>() { match });
                         }
                         else
                         {
@@ -259,11 +247,11 @@ namespace ApolloWorldCup
 
                             if (previousMatch.Status != match.Status)
                             {
-                                PostMatchStateChange(match);
+                                PostMatchStateChange(new List<WorldCupMatch>() { match });
                             }
                             else if ((previousMatch.Time == "half-time" || match.Time == "half-time") && previousMatch.Time != match.Time)
                             {
-                                PostMatchStateChange(match);
+                                PostMatchStateChange(new List<WorldCupMatch>() { match });
                             }
                         }
                     }
@@ -293,147 +281,154 @@ namespace ApolloWorldCup
 
         }
 
-        public void PostMatchStateChange(WorldCupMatch matchState)
+        public void PostMatchStateChange(List<WorldCupMatch> matchStates)
         {
-            var date = DateTime.Parse(matchState.DateTime);
-            var message = "";
+            var messageAll = "";
 
-            switch (matchState.Status)
+            foreach (var matchState in matchStates)
             {
-                case "future":
-                    var stageName = "";
+                var date = DateTime.Parse(matchState.DateTime);
+                var message = "";
 
-                    switch (matchState.StageName)
-                    {
-                        case "Round of 16":
-                            stageName = "1/8";
-                            break;
-                        case "Quarter-finals":
-                            stageName = "1/4";
-                            break;
-                        case "Semi-finals":
-                            stageName = "1/2";
-                            break;
-                        case "Play-off for third place":
-                            stageName = "Petite finale";
-                            break;
-                        case "Final":
-                            stageName = "Finale";
-                            break;
-                    }
+                switch (matchState.Status)
+                {
+                    case "future":
+                        var stageName = "";
 
-                    if (matchState.HomeTeam.Code != "TBD" && matchState.AwayTeam.Code != "TBD")
-                    {
-                        message = string.Format(
-                            MATCH_FUTURE,
-                            stageName,
-                            matchState.HomeTeam.Country,
-                            GetCountryCode(matchState.HomeTeam.Country),
-                            GetCountryCode(matchState.AwayTeam.Country),
-                            matchState.AwayTeam.Country,
-                            date.ToString(Constants.DATETIME_FORMAT)
-                            );
-                    }
-                    else if (matchState.HomeTeam.Code != "TBD")
-                    {
-                        message = string.Format(
-                            MATCH_FUTURE_TBD_1,
-                            stageName,
-                            matchState.HomeTeam.Country,
-                            GetCountryCode(matchState.HomeTeam.Country),
-                            date.ToString(Constants.DATETIME_FORMAT)
-                            );
-                    }
-                    else if (matchState.AwayTeam.Code != "TBD")
-                    {
-                        message = string.Format(
-                            MATCH_FUTURE_TBD_2,
-                            stageName,
-                            GetCountryCode(matchState.AwayTeam.Country),
-                            matchState.AwayTeam.Country,
-                            date.ToString(Constants.DATETIME_FORMAT)
-                            );
-                    }
-                    else
-                    {
-                        message = string.Format(
-                            MATCH_FUTURE_TBD_3,
-                            stageName,
-                            date.ToString(Constants.DATETIME_FORMAT)
-                            );
-                    }
-                    break;
-                case "in progress":
-                    if (matchState.Time == "half-time")
-                    {
-                        message = string.Format(
-                            MATCH_PAUSE,
-                            matchState.HomeTeam.Country,
-                            GetCountryCode(matchState.HomeTeam.Country),
-                            matchState.HomeTeam.Goals,
-                            matchState.AwayTeam.Goals,
-                            GetCountryCode(matchState.AwayTeam.Country),
-                            matchState.AwayTeam.Country
-                            );
-                    }
-                    else
-                    {
-                        message = string.Format(
-                            MATCH_START,
-                            matchState.HomeTeam.Country,
-                            GetCountryCode(matchState.HomeTeam.Country),
-                            matchState.HomeTeam.Goals,
-                            matchState.AwayTeam.Goals,
-                            GetCountryCode(matchState.AwayTeam.Country),
-                            matchState.AwayTeam.Country,
-                            matchState.Time
-                            );
-                    }
-                    break;
-                case "completed":
-                    if (matchState.Winner == "Draw")
-                    {
-                        message = string.Format(
-                            MATCH_END_DRAW,
-                            matchState.HomeTeam.Country,
-                            GetCountryCode(matchState.HomeTeam.Country),
-                            GetCountryCode(matchState.AwayTeam.Country),
-                            matchState.AwayTeam.Country,
-                            matchState.AwayTeam.Goals,
-                            matchState.AwayTeam.Goals
-                            );
-                    }
-                    else
-                    {
-                        var looser = matchState.Winner == matchState.HomeTeam.Country ? matchState.AwayTeam.Country : matchState.HomeTeam.Country;
-                        var scoreWinner = matchState.Winner == matchState.HomeTeam.Country ? matchState.HomeTeam.Goals : matchState.AwayTeam.Goals;
-                        var scoreLooser = matchState.Winner == matchState.HomeTeam.Country ? matchState.AwayTeam.Goals : matchState.HomeTeam.Goals;
+                        switch (matchState.StageName)
+                        {
+                            case "Round of 16":
+                                stageName = "1/8";
+                                break;
+                            case "Quarter-finals":
+                                stageName = "1/4";
+                                break;
+                            case "Semi-finals":
+                                stageName = "1/2";
+                                break;
+                            case "Play-off for third place":
+                                stageName = "Petite finale";
+                                break;
+                            case "Final":
+                                stageName = "Finale";
+                                break;
+                        }
 
+                        if (matchState.HomeTeam.Code != "TBD" && matchState.AwayTeam.Code != "TBD")
+                        {
+                            message = string.Format(
+                                MATCH_FUTURE,
+                                stageName,
+                                matchState.HomeTeam.Country,
+                                GetCountryCode(matchState.HomeTeam.Country),
+                                GetCountryCode(matchState.AwayTeam.Country),
+                                matchState.AwayTeam.Country,
+                                date.ToString(Constants.DATETIME_FORMAT)
+                                );
+                        }
+                        else if (matchState.HomeTeam.Code != "TBD")
+                        {
+                            message = string.Format(
+                                MATCH_FUTURE_TBD_1,
+                                stageName,
+                                matchState.HomeTeam.Country,
+                                GetCountryCode(matchState.HomeTeam.Country),
+                                date.ToString(Constants.DATETIME_FORMAT)
+                                );
+                        }
+                        else if (matchState.AwayTeam.Code != "TBD")
+                        {
+                            message = string.Format(
+                                MATCH_FUTURE_TBD_2,
+                                stageName,
+                                GetCountryCode(matchState.AwayTeam.Country),
+                                matchState.AwayTeam.Country,
+                                date.ToString(Constants.DATETIME_FORMAT)
+                                );
+                        }
+                        else
+                        {
+                            message = string.Format(
+                                MATCH_FUTURE_TBD_3,
+                                stageName,
+                                date.ToString(Constants.DATETIME_FORMAT)
+                                );
+                        }
+                        break;
+                    case "in progress":
+                        if (matchState.Time == "half-time")
+                        {
+                            message = string.Format(
+                                MATCH_PAUSE,
+                                matchState.HomeTeam.Country,
+                                GetCountryCode(matchState.HomeTeam.Country),
+                                matchState.HomeTeam.Goals,
+                                matchState.AwayTeam.Goals,
+                                GetCountryCode(matchState.AwayTeam.Country),
+                                matchState.AwayTeam.Country
+                                );
+                        }
+                        else
+                        {
+                            message = string.Format(
+                                MATCH_START,
+                                matchState.HomeTeam.Country,
+                                GetCountryCode(matchState.HomeTeam.Country),
+                                matchState.HomeTeam.Goals,
+                                matchState.AwayTeam.Goals,
+                                GetCountryCode(matchState.AwayTeam.Country),
+                                matchState.AwayTeam.Country,
+                                matchState.Time
+                                );
+                        }
+                        break;
+                    case "completed":
+                        if (matchState.Winner == "Draw")
+                        {
+                            message = string.Format(
+                                MATCH_END_DRAW,
+                                matchState.HomeTeam.Country,
+                                GetCountryCode(matchState.HomeTeam.Country),
+                                GetCountryCode(matchState.AwayTeam.Country),
+                                matchState.AwayTeam.Country,
+                                matchState.AwayTeam.Goals,
+                                matchState.AwayTeam.Goals
+                                );
+                        }
+                        else
+                        {
+                            var looser = matchState.Winner == matchState.HomeTeam.Country ? matchState.AwayTeam.Country : matchState.HomeTeam.Country;
+                            var scoreWinner = matchState.Winner == matchState.HomeTeam.Country ? matchState.HomeTeam.Goals : matchState.AwayTeam.Goals;
+                            var scoreLooser = matchState.Winner == matchState.HomeTeam.Country ? matchState.AwayTeam.Goals : matchState.HomeTeam.Goals;
+
+                            message = string.Format(
+                                MATCH_END_VICTORY,
+                                matchState.Winner,
+                                GetCountryCode(matchState.Winner),
+                                looser,
+                                GetCountryCode(looser),
+                                scoreWinner,
+                                scoreLooser
+                                );
+                        }
+                        break;
+                    default:
                         message = string.Format(
-                            MATCH_END_VICTORY,
-                            matchState.Winner,
-                            GetCountryCode(matchState.Winner),
-                            looser,
-                            GetCountryCode(looser),
-                            scoreWinner,
-                            scoreLooser
-                            );
-                    }
-                    break;
-                default:
-                    message = string.Format(
-                      MATCH_OTHER,
-                      matchState.HomeTeam.Country,
-                      GetCountryCode(matchState.HomeTeam.Country),
-                      GetCountryCode(matchState.AwayTeam.Country),
-                      matchState.AwayTeam.Country,
-                      matchState.Status
-                      );
-                    break;
+                          MATCH_OTHER,
+                          matchState.HomeTeam.Country,
+                          GetCountryCode(matchState.HomeTeam.Country),
+                          GetCountryCode(matchState.AwayTeam.Country),
+                          matchState.AwayTeam.Country,
+                          matchState.Status
+                          );
+                        break;
+                }
+
+                messageAll += message + "\n";
             }
 
-            _logger.Info(message);
-            _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);
+            _logger.Info(messageAll);
+            _api.SendMessage(_channel, messageAll, Emoji.Ghost, "Apollo WorldCup", _logger);
         }
 
         public void PostOnEvent(WorldCupMatch match, WorldCupTeam team, WorldCupTeamEvent e)
@@ -471,24 +466,22 @@ namespace ApolloWorldCup
 
             if (e.Type == "goal")
             {
-                PostMatchStateChange(match);
+                PostMatchStateChange(new List<WorldCupMatch>() { match });
             }
         }
 
-        public void PostOnTeamStat(WorldCupTeam team)
+        public void PostOnTeamStat(List<WorldCupTeam> teams)
         {
-            var message = string.Format(TEAM_STATS, team.Country, GetCountryCode(team.Country), team.Wins, team.Draws, team.Losses, team.GoalsFor, team.GoalsAgainst);
-
-            var slackMessage = new SlackMessage
+            var messageAll = "";
+            foreach (var team in teams)
             {
-                Channel = _channel,
-                Text = message,
-                IconEmoji = Emoji.Ghost,
-                Username = "ApolloWorldCup"
-            };
+                var message = string.Format(TEAM_STATS, team.Country, GetCountryCode(team.Country), team.Wins, team.Draws, team.Losses, team.GoalsFor, team.GoalsAgainst);
 
-            _logger.Info(message);
-            _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);
+                messageAll += message + "\n";
+            }
+
+            _logger.Info(messageAll);
+            _api.SendMessage(_channel, messageAll, Emoji.Ghost, "Apollo WorldCup", _logger);
         }
 
         private string GetCountryCode(string s)
