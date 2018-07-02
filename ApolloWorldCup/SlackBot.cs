@@ -69,7 +69,7 @@ namespace ApolloWorldCup
             {
                 { Constants.CMD_PRONO, () => { _api.SendMessage(channelId, "https://fr.pronocontest.com/contest/3087-apollocup?page=1#/ranking/general", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
                 { Constants.CMD_SLITHER, () => { _api.SendMessage(channelId, "http://slither.io/", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { Constants.CMD_ALEXIS, () => { _api.SendMessage(channelId, "https://media1.tenor.com/images/53550b59a074399b315df761b67821bc/tenor.gif?itemid=10928936", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_ALEXIS, () => { _api.SendMessage(channelId, "https://image.ibb.co/gZCMnJ/money.jpg", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
                 { Constants.CMD_YAYA, () => { _api.SendMessage(channelId, "https://media.giphy.com/media/3oKGz8CjdhZx1OCDV6/source.gif", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
                 { Constants.CMD_UPTIME, () => { _api.SendMessage(channelId, $"Bot démarré depuis le {_start.ToString("dd/MM/yy HH:mm:ss")}", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
                 { Constants.CMD_ROLL, () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=dQw4w9WgXcQ", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
