@@ -46,11 +46,6 @@ namespace ApolloWorldCup
         private DateTime _start;
 
         private List<WorldCupMatch> _previousMatches;
-#if DEBUG
-        private bool _sendMessagesToSlack = false;
-#else
-        private bool _sendMessagesToSlack = true;
-#endif
         private string _channel = "#sport";
         private CultureInfo[] _cultures;
         private Action _onClose;
@@ -72,27 +67,27 @@ namespace ApolloWorldCup
 
             _commands = new Dictionary<string, Action>()
             {
-                { "!prono", () => { _api.SendMessage(channelId, "https://fr.pronocontest.com/contest/3087-apollocup?page=1#/ranking/general", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!slither", () => { _api.SendMessage(channelId, "http://slither.io/", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!alexis", () => { _api.SendMessage(channelId, "Monnnnnneeeetttt", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!yaya", () => { _api.SendMessage(channelId, "Zoom zoom", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!uptime", () => { _api.SendMessage(channelId, $"Bot démarré depuis le {_start.ToString("dd/MM/yy HH:mm:ss")}", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!roll", () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=dQw4w9WgXcQ", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!puddy", () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=KyucG76N9PY", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!horse", () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=OWFBqiUgspg", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!poireau", () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=jdL-K9EgSwE", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!stars", () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=cl4ySbLvdEM", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!chicken", () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=rA9Ood3-peg", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!taupe", () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=24pUKRQt7fk", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!frog", () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=k85mRPqvMbE", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!github", () => { _api.SendMessage(channelId, "Vous pouvez contribuer ici : https://github.com/Lysfith/ApolloWorldCup", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!scribe", () => { _api.SendMessage(channelId, "Vous savez, moi je ne crois pas qu’il y ait de bonne ou de mauvaise situation. Moi, si je devais résumer ma vie aujourd’hui avec vous, je dirais que c’est d’abord des rencontres. Des gens qui m’ont tendu la main, peut-être à un moment où je ne pouvais pas, où j’étais seul chez moi. Et c’est assez curieux de se dire que les hasards, les rencontres forgent une destinée... Parce que quand on a le goût de la chose, quand on a le goût de la chose bien faite, le beau geste, parfois on ne trouve pas l’interlocuteur en face je dirais, le miroir qui vous aide à avancer. Alors ça n’est pas mon cas, comme je disais là, puisque moi au contraire, j’ai pu : et je dis merci à la vie, je lui dis merci, je chante la vie, je danse la vie... je ne suis qu’amour ! Et finalement, quand beaucoup de gens aujourd’hui me disent « Mais comment fais-tu pour avoir cette humanité ? », et bien je leur réponds très simplement, je leur dis que c’est ce goût de l’amour ce goût donc qui m’a poussé aujourd’hui à entreprendre une construction mécanique, mais demain qui sait ? Peut-être simplement à me mettre au service de la communauté, à faire le don, le don de soi... ", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
-                { "!stop", () => {
+                { Constants.CMD_PRONO, () => { _api.SendMessage(channelId, "https://fr.pronocontest.com/contest/3087-apollocup?page=1#/ranking/general", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_SLITHER, () => { _api.SendMessage(channelId, "http://slither.io/", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_ALEXIS, () => { _api.SendMessage(channelId, "https://media1.tenor.com/images/53550b59a074399b315df761b67821bc/tenor.gif?itemid=10928936", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_YAYA, () => { _api.SendMessage(channelId, "https://media.giphy.com/media/3oKGz8CjdhZx1OCDV6/source.gif", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_UPTIME, () => { _api.SendMessage(channelId, $"Bot démarré depuis le {_start.ToString("dd/MM/yy HH:mm:ss")}", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_ROLL, () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=dQw4w9WgXcQ", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_PUDDY, () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=KyucG76N9PY", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_HORSE, () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=OWFBqiUgspg", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_POIREAU, () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=jdL-K9EgSwE", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_STARS, () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=cl4ySbLvdEM", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_CHICKEN, () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=rA9Ood3-peg", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_TAUPE, () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=24pUKRQt7fk", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_FROG, () => { _api.SendMessage(channelId, "https://www.youtube.com/watch?v=k85mRPqvMbE", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_GITHUB, () => { _api.SendMessage(channelId, "Vous pouvez contribuer ici : https://github.com/Lysfith/ApolloWorldCup", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_SCRIBE, () => { _api.SendMessage(channelId, "Vous savez, moi je ne crois pas qu’il y ait de bonne ou de mauvaise situation. Moi, si je devais résumer ma vie aujourd’hui avec vous, je dirais que c’est d’abord des rencontres. Des gens qui m’ont tendu la main, peut-être à un moment où je ne pouvais pas, où j’étais seul chez moi. Et c’est assez curieux de se dire que les hasards, les rencontres forgent une destinée... Parce que quand on a le goût de la chose, quand on a le goût de la chose bien faite, le beau geste, parfois on ne trouve pas l’interlocuteur en face je dirais, le miroir qui vous aide à avancer. Alors ça n’est pas mon cas, comme je disais là, puisque moi au contraire, j’ai pu : et je dis merci à la vie, je lui dis merci, je chante la vie, je danse la vie... je ne suis qu’amour ! Et finalement, quand beaucoup de gens aujourd’hui me disent « Mais comment fais-tu pour avoir cette humanité ? », et bien je leur réponds très simplement, je leur dis que c’est ce goût de l’amour ce goût donc qui m’a poussé aujourd’hui à entreprendre une construction mécanique, mais demain qui sait ? Peut-être simplement à me mettre au service de la communauté, à faire le don, le don de soi... ", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger); } },
+                { Constants.CMD_STOP, () => {
                         _api.SendMessage(channelId, $"Demande d'arrêt du bot...", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger);
                         _onClose?.Invoke();
                     }
                 },
-                { "!today", () => {
+                { Constants.CMD_TODAY, () => {
                         var matches = _wcApi.GetTodayMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
                         foreach (var match in matches)
@@ -101,7 +96,7 @@ namespace ApolloWorldCup
                         }
                     }
                 },
-                { "!tomorrow", () => {
+                { Constants.CMD_TOMORROW, () => {
                         var matches = _wcApi.GetTomorrowMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
                         foreach (var match in matches)
@@ -110,7 +105,7 @@ namespace ApolloWorldCup
                         }
                     }
                 },
-                { "!futures", () => {
+                { Constants.CMD_FUTURES, () => {
                         var matches = _wcApi.GetFuturesMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
                         foreach (var match in matches)
@@ -119,7 +114,7 @@ namespace ApolloWorldCup
                         }
                     }
                 },
-                 { "!teams", () => {
+                 { Constants.CMD_TEAMS, () => {
                     var teams = _wcApi.GetRemainingTeams().Result;
 
                     foreach (var team in teams)
@@ -128,7 +123,7 @@ namespace ApolloWorldCup
                     }
                 }
                 },
-                 { "!list", () => {
+                 { Constants.CMD_LIST, () => {
                         _api.SendMessage(channelId, string.Join(", ", _commands.Keys), Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger);
                     }
                 },
@@ -201,7 +196,7 @@ namespace ApolloWorldCup
 
         public void ExecuteCommand(string commandAsked)
         {
-            if(string.IsNullOrEmpty(commandAsked))
+            if (string.IsNullOrEmpty(commandAsked))
             {
                 return;
             }
@@ -288,21 +283,14 @@ namespace ApolloWorldCup
         public void PostStartBot()
         {
             _logger.Info(BOT_RUNNING);
-
-            if (_sendMessagesToSlack)
-            {
-                _api.SendMessage(_channel, BOT_RUNNING, Emoji.Ghost, "Apollo WorldCup", _logger);
-            }
+            _api.SendMessage(_channel, BOT_RUNNING, Emoji.Ghost, "Apollo WorldCup", _logger);
         }
 
         public void PostStopBot()
         {
             _logger.Info(BOT_STOPPING);
+            _api.SendMessage(_channel, BOT_STOPPING, Emoji.Ghost, "Apollo WorldCup", _logger);
 
-            if (_sendMessagesToSlack)
-            {
-                _api.SendMessage(_channel, BOT_STOPPING, Emoji.Ghost, "Apollo WorldCup", _logger);
-            }
         }
 
         public void PostMatchStateChange(WorldCupMatch matchState)
@@ -315,7 +303,7 @@ namespace ApolloWorldCup
                 case "future":
                     var stageName = "";
 
-                    switch(matchState.StageName)
+                    switch (matchState.StageName)
                     {
                         case "Round of 16":
                             stageName = "1/8";
@@ -343,7 +331,7 @@ namespace ApolloWorldCup
                             GetCountryCode(matchState.HomeTeam.Country),
                             GetCountryCode(matchState.AwayTeam.Country),
                             matchState.AwayTeam.Country,
-                            date.ToLocalTime().ToShortTimeString()
+                            date.ToString(Constants.DATETIME_FORMAT)
                             );
                     }
                     else if (matchState.HomeTeam.Code != "TBD")
@@ -353,7 +341,7 @@ namespace ApolloWorldCup
                             stageName,
                             matchState.HomeTeam.Country,
                             GetCountryCode(matchState.HomeTeam.Country),
-                            date.ToLocalTime().ToShortTimeString()
+                            date.ToString(Constants.DATETIME_FORMAT)
                             );
                     }
                     else if (matchState.AwayTeam.Code != "TBD")
@@ -363,7 +351,7 @@ namespace ApolloWorldCup
                             stageName,
                             GetCountryCode(matchState.AwayTeam.Country),
                             matchState.AwayTeam.Country,
-                            date.ToLocalTime().ToShortTimeString()
+                            date.ToString(Constants.DATETIME_FORMAT)
                             );
                     }
                     else
@@ -371,7 +359,7 @@ namespace ApolloWorldCup
                         message = string.Format(
                             MATCH_FUTURE_TBD_3,
                             stageName,
-                            date.ToLocalTime().ToShortTimeString()
+                            date.ToString(Constants.DATETIME_FORMAT)
                             );
                     }
                     break;
@@ -445,11 +433,7 @@ namespace ApolloWorldCup
             }
 
             _logger.Info(message);
-
-            if (_sendMessagesToSlack)
-            {
-                _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);
-            }
+            _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);
         }
 
         public void PostOnEvent(WorldCupMatch match, WorldCupTeam team, WorldCupTeamEvent e)
@@ -483,15 +467,11 @@ namespace ApolloWorldCup
             };
 
             _logger.Info(message);
+            _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);
 
-            if (_sendMessagesToSlack)
+            if (e.Type == "goal")
             {
-                _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);
-
-                if(e.Type == "goal")
-                {
-                    PostMatchStateChange(match);
-                }
+                PostMatchStateChange(match);
             }
         }
 
@@ -508,11 +488,7 @@ namespace ApolloWorldCup
             };
 
             _logger.Info(message);
-
-            if (_sendMessagesToSlack)
-            {
-                _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);
-            }
+            _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);
         }
 
         private string GetCountryCode(string s)
