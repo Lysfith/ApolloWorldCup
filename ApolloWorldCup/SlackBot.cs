@@ -16,7 +16,10 @@ namespace ApolloWorldCup
         public static string BOT_STOPPING = "Arrêt du bot";
 
         public static string MATCH_OTHER = "{0} :flag-{1}: - :flag-{2}: {3} ({4})";
-        public static string MATCH_FUTURE = "{0} :flag-{1}: - :flag-{2}: {3} :watch:{4}";
+        public static string MATCH_FUTURE = "*{0} :* {1} :flag-{2}: - :flag-{3}: {4} :watch:{5}";
+        public static string MATCH_FUTURE_TBD_1 = "*{0} :* {1} :flag-{2}: - Non déterminé :watch:{3}";
+        public static string MATCH_FUTURE_TBD_2 = "*{0} :* Non déterminé - :flag-{1}: {2} :watch:{3}";
+        public static string MATCH_FUTURE_TBD_3 = "*{0} :* Non déterminé - Non déterminé :watch:{1}";
         public static string MATCH_PAUSE = "{0} :flag-{1}: *{2}* | *{3}* :flag-{4}: {5} (Mi-temps)";
         public static string MATCH_START = "{0} :flag-{1}: *{2}* | *{3}* :flag-{4}: {5} (En cours - {6})";
         public static string MATCH_END_DRAW = "Le match *{0}* :flag-{2}: - :flag-{3}: *{4}* s'est terminé par une égalité ({5} - {6})";
@@ -26,6 +29,8 @@ namespace ApolloWorldCup
         public static string EVENT_RED_CARD = ":carton_rouge: *Carton rouge* pour *{0}* de *{1}* :flag-{2}: à la *{3}*";
         public static string EVENT_PENALTY = "*Penalty* en faveur de *{0}* :flag-{1}: tiré par *{2}* à la *{3}*";
         public static string EVENT_GOAL = ":but: *{0}* a marqué pour *{1}* :flag-{2}: à la *{3}*";
+
+        public static string TEAM_STATS = "*{0}* :flag-{1}: : W *{2}* | D *{3}* | L *{4}* | Buts totaux *{5}* | Buts pris *{6}*";
 
 
         private Dictionary<string, Action> _commands;
@@ -41,7 +46,11 @@ namespace ApolloWorldCup
         private DateTime _start;
 
         private List<WorldCupMatch> _previousMatches;
+#if DEBUG
+        private bool _sendMessagesToSlack = false;
+#else
         private bool _sendMessagesToSlack = true;
+#endif
         private string _channel = "#sport";
         private CultureInfo[] _cultures;
         private Action _onClose;
@@ -101,6 +110,24 @@ namespace ApolloWorldCup
                         }
                     }
                 },
+                { "!futures", () => {
+                        var matches = _wcApi.GetFuturesMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
+
+                        foreach (var match in matches)
+                        {
+                            PostMatchStateChange(match);
+                        }
+                    }
+                },
+                 { "!teams", () => {
+                    var teams = _wcApi.GetRemainingTeams().Result;
+
+                    foreach (var team in teams)
+                    {
+                        PostOnTeamStat(team);
+                    }
+                }
+                },
                  { "!list", () => {
                         _api.SendMessage(channelId, string.Join(", ", _commands.Keys), Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger);
                     }
@@ -158,15 +185,7 @@ namespace ApolloWorldCup
                         {
                             foreach (var message in messages)
                             {
-                                var parseLine = message.Text.Split(' ');
-                                var commandStr = parseLine[0].ToLowerInvariant();
-
-                                var command = _commands.Keys.Where(c => c == commandStr).FirstOrDefault();
-
-                                if (_commands.ContainsKey(commandStr))
-                                {
-                                    _commands[commandStr].Invoke();
-                                }
+                                ExecuteCommand(message.Text);
                             }
                         }
                     }
@@ -177,6 +196,24 @@ namespace ApolloWorldCup
                 }
 
                 Thread.Sleep(1000);
+            }
+        }
+
+        public void ExecuteCommand(string commandAsked)
+        {
+            if(string.IsNullOrEmpty(commandAsked))
+            {
+                return;
+            }
+
+            var parseLine = commandAsked.Split(' ');
+            var commandStr = parseLine[0].ToLowerInvariant();
+
+            var command = _commands.Keys.Where(c => c == commandStr).FirstOrDefault();
+
+            if (_commands.ContainsKey(commandStr))
+            {
+                _commands[commandStr].Invoke();
             }
         }
 
@@ -243,7 +280,7 @@ namespace ApolloWorldCup
                     _logger.Error(ex);
                 }
 
-                Thread.Sleep(10000);
+                Thread.Sleep(20000);
             }
         }
 
@@ -276,14 +313,67 @@ namespace ApolloWorldCup
             switch (matchState.Status)
             {
                 case "future":
-                    message = string.Format(
-                        MATCH_FUTURE,
-                        matchState.HomeTeam.Country,
-                        GetCountryCode(matchState.HomeTeam.Country),
-                        GetCountryCode(matchState.AwayTeam.Country),
-                        matchState.AwayTeam.Country,
-                        date.ToLocalTime().ToShortTimeString()
-                        );
+                    var stageName = "";
+
+                    switch(matchState.StageName)
+                    {
+                        case "Round of 16":
+                            stageName = "1/8";
+                            break;
+                        case "Quarter-finals":
+                            stageName = "1/4";
+                            break;
+                        case "Semi-finals":
+                            stageName = "1/2";
+                            break;
+                        case "Play-off for third place":
+                            stageName = "Petite finale";
+                            break;
+                        case "Final":
+                            stageName = "Finale";
+                            break;
+                    }
+
+                    if (matchState.HomeTeam.Code != "TBD" && matchState.AwayTeam.Code != "TBD")
+                    {
+                        message = string.Format(
+                            MATCH_FUTURE,
+                            stageName,
+                            matchState.HomeTeam.Country,
+                            GetCountryCode(matchState.HomeTeam.Country),
+                            GetCountryCode(matchState.AwayTeam.Country),
+                            matchState.AwayTeam.Country,
+                            date.ToLocalTime().ToShortTimeString()
+                            );
+                    }
+                    else if (matchState.HomeTeam.Code != "TBD")
+                    {
+                        message = string.Format(
+                            MATCH_FUTURE_TBD_1,
+                            stageName,
+                            matchState.HomeTeam.Country,
+                            GetCountryCode(matchState.HomeTeam.Country),
+                            date.ToLocalTime().ToShortTimeString()
+                            );
+                    }
+                    else if (matchState.AwayTeam.Code != "TBD")
+                    {
+                        message = string.Format(
+                            MATCH_FUTURE_TBD_2,
+                            stageName,
+                            GetCountryCode(matchState.AwayTeam.Country),
+                            matchState.AwayTeam.Country,
+                            date.ToLocalTime().ToShortTimeString()
+                            );
+                    }
+                    else
+                    {
+                        message = string.Format(
+                            MATCH_FUTURE_TBD_3,
+                            stageName,
+                            date.ToLocalTime().ToShortTimeString()
+                            );
+                    }
                     break;
                 case "in progress":
                     if (matchState.Time == "half-time")
@@ -402,6 +492,26 @@ namespace ApolloWorldCup
                 {
                     PostMatchStateChange(match);
                 }
+            }
+        }
+
+        public void PostOnTeamStat(WorldCupTeam team)
+        {
+            var message = string.Format(TEAM_STATS, team.Country, GetCountryCode(team.Country), team.Wins, team.Draws, team.Losses, team.GoalsFor, team.GoalsAgainst);
+
+            var slackMessage = new SlackMessage
+            {
+                Channel = _channel,
+                Text = message,
+                IconEmoji = Emoji.Ghost,
+                Username = "ApolloWorldCup"
+            };
+
+            _logger.Info(message);
+
+            if (_sendMessagesToSlack)
+            {
+                _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);
             }
         }
 

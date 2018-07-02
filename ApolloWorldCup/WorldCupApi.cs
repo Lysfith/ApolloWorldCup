@@ -14,6 +14,8 @@ namespace ApolloWorldCup
         private string _urlTodayMatches = "http://worldcup.sfg.io/matches/today";
         private string _urlTomorrowMatches = "http://worldcup.sfg.io/matches/tomorrow";
         private string _urlCurrentMatch = "http://worldcup.sfg.io/matches/current";
+        private string _urlAllTeams = "https://worldcup.sfg.io/teams/results";
+        private string _urlAllFuturesMatches = "https://worldcup.sfg.io/matches?start_date={0}&end_date=2018-08-01&by_date=ASC";
         private HttpClient _client;
 
         
@@ -76,6 +78,83 @@ namespace ApolloWorldCup
             }
 
             return new List<WorldCupMatch>();
+        }
+
+        public async Task<List<WorldCupMatch>> GetFuturesMatches()
+        {
+            try
+            {
+
+                var request = new HttpRequestMessage(HttpMethod.Get, string.Format(_urlAllFuturesMatches, DateTime.UtcNow.ToString("yyyy-MM-dd")));
+
+                var response = await _client.SendAsync(request);
+
+                var str = await response.Content.ReadAsStringAsync();
+
+                var matches = JsonConvert.DeserializeObject<List<WorldCupMatch>>(str);
+
+                return matches.ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"{ex.Message} - {ex.InnerException}");
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+
+            return new List<WorldCupMatch>();
+        }
+
+        public async Task<List<WorldCupTeam>> GetRemainingTeams()
+        {
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, string.Format(_urlAllFuturesMatches, DateTime.UtcNow.ToString("yyyy-MM-dd")));
+
+                var response = await _client.SendAsync(request);
+
+                var str = await response.Content.ReadAsStringAsync();
+
+                var matches = JsonConvert.DeserializeObject<List<WorldCupMatch>>(str);
+
+                var teamIds = new List<string>();
+
+                foreach(var match in matches)
+                {
+                    if(!teamIds.Any(t => match.AwayTeam.Code == t))
+                    {
+                        teamIds.Add(match.AwayTeam.Code);
+                    }
+
+                    if (!teamIds.Any(t => match.HomeTeam.Code == t))
+                    {
+                        teamIds.Add(match.HomeTeam.Code);
+                    }
+                }
+
+                if(teamIds.Any())
+                {
+                    var requestTeam = new HttpRequestMessage(HttpMethod.Get, _urlAllTeams);
+
+                    var responseTeam = await _client.SendAsync(requestTeam);
+
+                    var strTeam = await responseTeam.Content.ReadAsStringAsync();
+
+                    var teams =  JsonConvert.DeserializeObject<List<WorldCupTeam>>(strTeam);
+
+                    return teams.Where(t => teamIds.Contains(t.FifaCode)).ToList();
+                }
+
+                return new List<WorldCupTeam>();
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"{ex.Message} - {ex.InnerException}");
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+
+            return new List<WorldCupTeam>();
         }
     }
 }
