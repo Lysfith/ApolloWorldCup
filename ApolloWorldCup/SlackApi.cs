@@ -10,8 +10,16 @@ using System.Threading.Tasks;
 
 namespace ApolloWorldCup
 {
+
     public class SlackApi
     {
+
+#if DEBUG
+        private bool _sendMessagesToSlack = false;
+#else
+        private bool _sendMessagesToSlack = true;
+#endif
+
         public const string WEBHOOK_URL = "#WEBHOOK_URL#";
 
         public SlackClient _client;
@@ -33,16 +41,21 @@ namespace ApolloWorldCup
 
         public void SendMessage(string channel, string text, Emoji icon, string username, ILog logger)
         {
-            try { 
-                var slackMessage = new SlackMessage
+            try {
+                if (_sendMessagesToSlack)
                 {
-                    Channel = channel,
-                    Text = text,
-                    IconEmoji = icon,
-                    Username = username
-                };
 
-                _client.Post(slackMessage);
+                    var slackMessage = new SlackMessage
+                    {
+                        Channel = channel,
+                        Text = text,
+                        IconEmoji = icon,
+                        Username = username
+                    };
+
+                    _client.Post(slackMessage);
+                }
+                Console.WriteLine(text);
             }
             catch (Exception ex)
             {
