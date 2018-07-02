@@ -15,6 +15,7 @@ namespace ApolloWorldCup
         public static string BOT_RUNNING = "Démarrage du bot";
         public static string BOT_STOPPING = "Arrêt du bot";
 
+        public static string MATCH_OTHER = "{0} :flag-{1}: - :flag-{2}: {3} ({4})";
         public static string MATCH_FUTURE = "{0} :flag-{1}: - :flag-{2}: {3} :watch:{4}";
         public static string MATCH_PAUSE = "{0} :flag-{1}: *{2}* | *{3}* :flag-{4}: {5} (Mi-temps)";
         public static string MATCH_START = "{0} :flag-{1}: *{2}* | *{3}* :flag-{4}: {5} (En cours - {6})";
@@ -209,7 +210,7 @@ namespace ApolloWorldCup
                                 foreach (var id in awayEvents)
                                 {
                                     var e = match.AwayTeamEvents.First(a => a.Id == id);
-                                    PostOnEvent(match.AwayTeam, e);
+                                    PostOnEvent(match, match.AwayTeam, e);
                                 }
                             }
 
@@ -220,7 +221,7 @@ namespace ApolloWorldCup
                                 foreach (var id in homeEvents)
                                 {
                                     var e = match.HomeTeamEvents.First(a => a.Id == id);
-                                    PostOnEvent(match.HomeTeam, e);
+                                    PostOnEvent(match, match.HomeTeam, e);
                                 }
                             }
 
@@ -342,7 +343,15 @@ namespace ApolloWorldCup
                     }
                     break;
                 default:
-                    return;
+                    message = string.Format(
+                      MATCH_OTHER,
+                      matchState.HomeTeam.Country,
+                      GetCountryCode(matchState.HomeTeam.Country),
+                      GetCountryCode(matchState.AwayTeam.Country),
+                      matchState.AwayTeam.Country,
+                      matchState.Status
+                      );
+                    break;
             }
 
             _logger.Info(message);
@@ -353,7 +362,7 @@ namespace ApolloWorldCup
             }
         }
 
-        public void PostOnEvent(WorldCupTeam team, WorldCupTeamEvent e)
+        public void PostOnEvent(WorldCupMatch match, WorldCupTeam team, WorldCupTeamEvent e)
         {
             var message = "";
 
@@ -388,6 +397,11 @@ namespace ApolloWorldCup
             if (_sendMessagesToSlack)
             {
                 _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);
+
+                if(e.Type == "goal")
+                {
+                    PostMatchStateChange(match);
+                }
             }
         }
 

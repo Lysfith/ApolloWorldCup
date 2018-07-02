@@ -16,6 +16,7 @@ namespace ApolloWorldCup
         public static SlackApi _slackApi;
         public static SlackBot _slackBot;
         public static WorldCupApi _wcApi;
+        public static PronoApi _pronoApi;
         public static bool _enableSlackApi = false;
         public static bool _running = true;
 
