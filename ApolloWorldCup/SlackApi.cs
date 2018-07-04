@@ -15,7 +15,7 @@ namespace ApolloWorldCup
     {
 
 #if DEBUG
-        private bool _sendMessagesToSlack = true;
+        private bool _sendMessagesToSlack = false;
 #else
         private bool _sendMessagesToSlack = true;
 #endif

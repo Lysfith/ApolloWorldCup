@@ -61,7 +61,7 @@ namespace ApolloWorldCup
                 _slackBot.Start();
 
 #if DEBUG
-                string command = Constants.CMD_ALEXIS;
+                string command = Constants.CMD_YESTERDAY;
                 _slackBot.ExecuteCommand(command);
 #endif
 

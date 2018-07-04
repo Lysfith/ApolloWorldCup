@@ -88,18 +88,28 @@ namespace ApolloWorldCup
                     }
                 },
                 { Constants.CMD_TODAY, () => {
+                        _api.SendMessage(channelId, $"Récupération des matchs de la journée...", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger);
                         var matches = _wcApi.GetTodayMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
                         PostMatchStateChange(matches);
                     }
                 },
                 { Constants.CMD_TOMORROW, () => {
+                        _api.SendMessage(channelId, $"Récupération des matchs de demain...", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger);
                         var matches = _wcApi.GetTomorrowMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
                         PostMatchStateChange(matches);
                     }
                 },
+                 { Constants.CMD_YESTERDAY, () => {
+                        _api.SendMessage(channelId, $"Récupération des matchs d'hier...", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger);
+                        var matches = _wcApi.GetYesterdayMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
+
+                        PostMatchStateChange(matches);
+                    }
+                },
                 { Constants.CMD_FUTURES, () => {
+                        _api.SendMessage(channelId, $"Récupération des prochains matchs...", Slack.Webhooks.Emoji.Ghost, "ApolloWorldCup", _logger);
                         var matches = _wcApi.GetFuturesMatches().Result.OrderBy(m => DateTime.Parse(m.DateTime)).ToList();
 
                         PostMatchStateChange(matches);
@@ -285,6 +295,14 @@ namespace ApolloWorldCup
         {
             var messageAll = "";
 
+            if(!matchStates.Any())
+            {
+                _logger.Info("Nope !");
+                _api.SendMessage(_channel, "https://i.giphy.com/media/12XMGIWtrHBl5e/giphy.gif", Emoji.Ghost, "Apollo WorldCup", _logger);
+
+                return;
+            }
+
             foreach (var matchState in matchStates)
             {
                 var date = DateTime.Parse(matchState.DateTime);
@@ -425,6 +443,79 @@ namespace ApolloWorldCup
                 }
 
                 messageAll += message + "\n";
+
+                if (matchState.Status != "future")
+                {
+                    if (matchState.HomeTeamEvents.Any() || matchState.AwayTeamEvents.Any())
+                    {
+                        var team = matchState.HomeTeam;
+
+                        messageAll += string.Format("    *Stats* {0} :flag-{1}: :\n", team.Country, GetCountryCode(team.Country));
+
+                        var events = matchState.HomeTeamEvents.GroupBy(e => e.Type);
+
+                        messageAll += "        ";
+
+                        var listMessages = new List<string>();
+
+                        foreach (var e in events)
+                        {
+                            if (e.Key == "red-card")
+                            {
+                                listMessages.Add($"*{e.Count()}x* :carton_rouge: ({string.Join(", ", e.Select(u => u.Player))})");
+                            }
+                            else if (e.Key == "yellow-card")
+                            {
+                                listMessages.Add($"*{e.Count()}x* :carton_jaune: ({string.Join(", ", e.Select(u => u.Player))})");
+                            }
+                            else if (e.Key == "goal-penalty")
+                            {
+                                listMessages.Add($"*{e.Count()}x* Penalty ({string.Join(", ", e.Select(u => u.Player))})");
+                            }
+                            else if (e.Key == "goal")
+                            {
+                                listMessages.Add($"*{e.Count()}x* :but: ({string.Join(", ", e.Select(u => u.Player))})");
+                            }
+                        }
+
+                        messageAll += string.Join(", ", listMessages) +  "\n";
+
+                        //=========================
+                        listMessages.Clear();
+
+                        team = matchState.AwayTeam;
+
+                        messageAll += string.Format("    *Stats* {0} :flag-{1}: :\n", team.Country, GetCountryCode(team.Country));
+
+                        events = matchState.AwayTeamEvents.GroupBy(e => e.Type);
+
+                        messageAll += "        ";
+
+                        foreach (var e in events)
+                        {
+                            if (e.Key == "red-card")
+                            {
+                                listMessages.Add($"*{e.Count()}x* :carton_rouge: ({string.Join(", ", e.Select(u => u.Player))})");
+                            }
+                            else if (e.Key == "yellow-card")
+                            {
+                                listMessages.Add($"*{e.Count()}x* :carton_jaune: ({string.Join(", ", e.Select(u => u.Player))})");
+                            }
+                            else if (e.Key == "goal-penalty")
+                            {
+                                listMessages.Add($"*{e.Count()}x* Penalty ({string.Join(", ", e.Select(u => u.Player))})");
+                            }
+                            else if (e.Key == "goal")
+                            {
+                                listMessages.Add($"*{e.Count()}x* :but: ({string.Join(", ", e.Select(u => u.Player))})");
+                            }
+                        }
+
+                        messageAll += string.Join(", ", listMessages) + "\n";
+                    }
+                }
+
+                messageAll += "\n";
             }
 
             _logger.Info(messageAll);
@@ -452,14 +543,6 @@ namespace ApolloWorldCup
                 default:
                     return;
             }
-
-            var slackMessage = new SlackMessage
-            {
-                Channel = _channel,
-                Text = message,
-                IconEmoji = Emoji.Ghost,
-                Username = "ApolloWorldCup"
-            };
 
             _logger.Info(message);
             _api.SendMessage(_channel, message, Emoji.Ghost, "Apollo WorldCup", _logger);

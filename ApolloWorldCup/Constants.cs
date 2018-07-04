@@ -26,6 +26,7 @@ namespace ApolloWorldCup
         public const string CMD_STOP = "!stop";
         public const string CMD_TODAY = "!today";
         public const string CMD_TOMORROW = "!tomorrow";
+        public const string CMD_YESTERDAY = "!yesterday";
         public const string CMD_FUTURES = "!futures";
         public const string CMD_TEAMS = "!teams";
         public const string CMD_LIST = "!list";
