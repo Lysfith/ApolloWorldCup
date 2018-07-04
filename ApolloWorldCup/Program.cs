@@ -60,6 +60,11 @@ namespace ApolloWorldCup
                 _slackBot = new SlackBot(_slackApi, _wcApi, channelId, token, _log, () => _running = false);
                 _slackBot.Start();
 
+#if DEBUG
+                string command = Constants.CMD_YESTERDAY;
+                _slackBot.ExecuteCommand(command);
+#endif
+
                 while (_running)
                 {
                     Thread.Sleep(1000);

@@ -13,6 +13,7 @@ namespace ApolloWorldCup
     {
         private string _urlTodayMatches = "http://worldcup.sfg.io/matches/today";
         private string _urlTomorrowMatches = "http://worldcup.sfg.io/matches/tomorrow";
+        private string _urlYesterdayMatches = "http://worldcup.sfg.io/matches?start_date={0}&end_date={1}&by_date=ASC";
         private string _urlCurrentMatch = "http://worldcup.sfg.io/matches/current";
         private string _urlAllTeams = "https://worldcup.sfg.io/teams/results";
         private string _urlAllFuturesMatches = "https://worldcup.sfg.io/matches?start_date={0}&end_date=2018-08-01&by_date=ASC";
@@ -63,6 +64,29 @@ namespace ApolloWorldCup
             {
 
                 var request = new HttpRequestMessage(HttpMethod.Get, _urlTomorrowMatches);
+
+                var response = await _client.SendAsync(request);
+
+                var str = await response.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<List<WorldCupMatch>>(str);
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"{ex.Message} - {ex.InnerException}");
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+
+            return new List<WorldCupMatch>();
+        }
+
+        public async Task<List<WorldCupMatch>> GetYesterdayMatches()
+        {
+            try
+            {
+
+                var request = new HttpRequestMessage(HttpMethod.Get, string.Format(_urlYesterdayMatches, DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd"),  DateTime.Today.ToString("yyyy-MM-dd")));
 
                 var response = await _client.SendAsync(request);
 
