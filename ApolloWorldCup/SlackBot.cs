@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using ApolloWorldCup.Library;
+using log4net;
 using log4net.Core;
 using Slack.Webhooks;
 using System;

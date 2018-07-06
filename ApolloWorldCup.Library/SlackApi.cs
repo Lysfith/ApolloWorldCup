@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApolloWorldCup
+namespace ApolloWorldCup.Library
 {
 
     public class SlackApi
