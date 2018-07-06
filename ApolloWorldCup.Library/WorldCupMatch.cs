@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace ApolloWorldCup
+namespace ApolloWorldCup.Library
 {
     [DataContract]
     public class WorldCupMatch

@@ -1,23 +1,18 @@
-﻿using Slack.Webhooks;
-using System;
-using System.Linq;
-using log4net.Config;
-using log4net;
-using System.Reflection;
-using System.IO;
-using System.Threading;
+﻿using ApolloWorldCup;
 using ApolloWorldCup.Library;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace ApolloWorldCup
+namespace ApolloWorldCupLauncher
 {
     class Program
     {
-        private static readonly log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         public static SlackApi _slackApi;
         public static SlackBot _slackBot;
-        public static WorldCupApi _wcApi;
-        public static PronoApi _pronoApi;
         public static bool _enableSlackApi = false;
         public static bool _running = true;
 
@@ -49,19 +44,11 @@ namespace ApolloWorldCup
                     }
                 }
 
-                _log.Info("Start");
-
-
-                _wcApi = new WorldCupApi();
                 _slackApi = new SlackApi(webhook);
 
-                _slackBot = new SlackBot(_slackApi, _wcApi, channelId, token, _log, () => _running = false);
+                _slackBot = new SlackBot(_slackApi, channelId, token, () => _running = false);
                 _slackBot.Start();
 
-#if DEBUG
-                string command = Constants.CMD_YESTERDAY;
-                _slackBot.ExecuteCommand(command);
-#endif
 
                 while (_running)
                 {
@@ -69,14 +56,12 @@ namespace ApolloWorldCup
                 }
 
                 _slackBot.Stop();
-                
-                _log.Info("End");
 
             }
-            catch (Exception e) {
-                _log.Error(e);
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
         }
-
     }
 }

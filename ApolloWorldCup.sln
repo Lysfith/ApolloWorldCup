@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.27130.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloWorldCup", "ApolloWorldCup\ApolloWorldCup.csproj", "{428B9E12-4861-45FF-BFA4-F2AA3F112548}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloWorldCupLauncher", "ApolloWorldCupLauncher\ApolloWorldCupLauncher.csproj", "{A42C4442-510F-4EDA-B927-C27C20F84B8D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApolloWorldCup.Library", "ApolloWorldCup.Library\ApolloWorldCup.Library.csproj", "{9884EB0B-BCDF-41DC-BC6D-A9CBABABCB0F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{428B9E12-4861-45FF-BFA4-F2AA3F112548}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{428B9E12-4861-45FF-BFA4-F2AA3F112548}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{428B9E12-4861-45FF-BFA4-F2AA3F112548}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A42C4442-510F-4EDA-B927-C27C20F84B8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A42C4442-510F-4EDA-B927-C27C20F84B8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A42C4442-510F-4EDA-B927-C27C20F84B8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A42C4442-510F-4EDA-B927-C27C20F84B8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9884EB0B-BCDF-41DC-BC6D-A9CBABABCB0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9884EB0B-BCDF-41DC-BC6D-A9CBABABCB0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9884EB0B-BCDF-41DC-BC6D-A9CBABABCB0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9884EB0B-BCDF-41DC-BC6D-A9CBABABCB0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
